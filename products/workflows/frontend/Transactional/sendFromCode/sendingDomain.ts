@@ -7,6 +7,8 @@ export type SendingDomain =
     | { status: 'pending'; integrationId: number; domain: string }
     | { status: 'verified'; integrationId: number; domain: string; email: string; from: string }
 
+export type VerifiedSender = Pick<Extract<SendingDomain, { status: 'verified' }>, 'email' | 'from'>
+
 interface EmailSenderFields {
     domain?: string
     email?: string

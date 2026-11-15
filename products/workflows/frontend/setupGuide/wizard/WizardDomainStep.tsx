@@ -2,13 +2,13 @@ import { useActions, useValues } from 'kea'
 
 import { LemonBanner } from '@posthog/lemon-ui'
 
-import { useFeatureFlag } from 'lib/hooks/useFeatureFlag'
 import { integrationsLogic } from 'lib/integrations/integrationsLogic'
 
 import { ChannelSetupModal } from '../../Channels/ChannelSetupModal'
 import { EmailIntegrationsList } from '../../Channels/EmailIntegrationsList'
 import { SendFromCodeNextCard } from '../../Transactional/sendFromCode/SendFromCodeNextCard'
 import { sendingDomainLogic } from '../../Transactional/sendFromCode/sendingDomainLogic'
+import { useSendFromCodeOffered } from '../../Transactional/sendFromCode/useSendFromCodeOffered'
 import { workflowsOnboardingWizardLogic } from './workflowsOnboardingWizardLogic'
 
 export function WizardDomainStep(): JSX.Element {
@@ -17,10 +17,7 @@ export function WizardDomainStep(): JSX.Element {
     const { setupModalOpen, setupModalType, selectedIntegration } = useValues(integrationsLogic)
     const { closeSetupModal } = useActions(integrationsLogic)
     const { sendingDomain } = useValues(sendingDomainLogic)
-    // The Transactional emails tab, where the first send shows up, needs the API flag too.
-    const codeSendsOn = useFeatureFlag('WORKFLOWS_EMAIL_FROM_CODE')
-    const transactionalTabOn = useFeatureFlag('WORKFLOWS_TRANSACTIONAL_EMAIL_API')
-    const offerCodeSends = codeSendsOn && transactionalTabOn
+    const sendFromCodeOffered = useSendFromCodeOffered()
 
     return (
         <div className="flex flex-col gap-4">
@@ -40,13 +37,11 @@ export function WizardDomainStep(): JSX.Element {
                 </LemonBanner>
             )}
             <EmailIntegrationsList />
-            {/* Onboarding goes on to a workflow, so sending from code comes second here. */}
-            {offerCodeSends && sendingDomain?.status === 'verified' ? (
+            {sendFromCodeOffered && sendingDomain?.status === 'verified' ? (
                 <SendFromCodeNextCard
                     surface="workflows_onboarding"
-                    eyebrow="Or send from your code"
-                    from={sendingDomain.from}
-                    fromAddress={sendingDomain.email}
+                    eyebrow="Without a workflow"
+                    sender={sendingDomain}
                 />
             ) : null}
         </div>

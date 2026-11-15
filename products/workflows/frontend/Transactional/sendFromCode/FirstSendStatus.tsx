@@ -31,7 +31,7 @@ export function FirstSendStatus({ surface }: { surface: SendFromCodeSurface }): 
                     to={urls.transactionalCodeEmail(firstCodeSend.codeEmail.id)}
                     data-attr="send-from-code-open-first-email"
                 >
-                    See it in Transactional emails
+                    {surface === 'transactional' ? 'Open email' : 'See it in Transactional emails'}
                 </LemonButton>
             </LemonCard>
         )

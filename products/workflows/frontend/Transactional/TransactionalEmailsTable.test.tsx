@@ -171,7 +171,7 @@ describe('TransactionalEmailsTable', () => {
         stored = [codeEmail('welcome', AccessControlLevel.Editor)]
         await act(() => jest.advanceTimersByTimeAsync(10_000))
 
-        expect(screen.getByText('PostHog got the first email from your code.')).toBeInTheDocument()
+        expect(screen.getByText(/PostHog got the first email from your code/)).toBeInTheDocument()
         jest.useRealTimers()
     })
 

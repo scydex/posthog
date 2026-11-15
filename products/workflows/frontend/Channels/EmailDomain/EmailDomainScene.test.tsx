@@ -342,9 +342,10 @@ describe('EmailDomainScene', () => {
     })
 
     it.each([
-        ['leads with the first send from code when code sends are on', true],
-        ['keeps the workflow choices when code sends are off', false],
-    ])('%s on the ready step', async (_case, codeSendsOn) => {
+        ['leads with the first send from code when code sends are on', true, true],
+        ['keeps the workflow choices when code sends are off', false, true],
+        ['keeps the workflow choices without the Transactional emails tab', true, false],
+    ])('%s on the ready step', async (_case, codeSendsOn, transactionalTabOn) => {
         let codeEmails: { id: string; key: string; created_at: string }[] = []
         useMocks({
             ...backend.mocks(),
@@ -357,7 +358,7 @@ describe('EmailDomainScene', () => {
             [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE, FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API],
             {
                 [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE]: codeSendsOn,
-                [FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API]: true,
+                [FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API]: transactionalTabOn,
             }
         )
         seedSender()
@@ -365,13 +366,13 @@ describe('EmailDomainScene', () => {
         await open(urls.workflowsEmailDomain(SENDER_ID))
         expectStep(/You can send from/)
 
-        if (!codeSendsOn) {
+        if (!codeSendsOn || !transactionalTabOn) {
             expect(screen.getByText(`Send your first email from ${DOMAIN}`)).toBeInTheDocument()
             expect(document.querySelector('[data-attr="send-from-code-next-card"]')).toBeNull()
             return
         }
-        expect(screen.getByText('Send your first email from your code')).toBeInTheDocument()
-        expect(element('send-from-code-snippet')).toHaveTextContent(`from: 'Acme <hello@${DOMAIN}>'`)
+        expect(screen.getByText('Send email from your code')).toBeInTheDocument()
+        expect(element('send-from-code-snippet')).toHaveTextContent(`from: "Acme <hello@${DOMAIN}>"`)
 
         codeEmails = [{ id: 'code-email-1', key: 'welcome', created_at: '2026-11-15T10:00:00Z' }]
         await flush(POLL_MS)

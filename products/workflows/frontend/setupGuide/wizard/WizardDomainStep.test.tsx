@@ -23,9 +23,10 @@ describe('WizardDomainStep', () => {
     afterEach(cleanup)
 
     it.each([
-        ['offers sending from code once the domain is verified', true],
-        ['waits for a verified domain before offering sending from code', false],
-    ])('%s', async (_case, verified) => {
+        ['offers sending from code once the domain is verified', true, true],
+        ['waits for a verified domain before offering sending from code', false, true],
+        ['offers no sending from code without the Transactional emails tab', true, false],
+    ])('%s', async (_case, verified, transactionalTabOn) => {
         useMocks({
             get: {
                 '/api/environments/:team_id/integrations/': { results: [sender(verified)] },
@@ -38,7 +39,7 @@ describe('WizardDomainStep', () => {
             [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE, FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API],
             {
                 [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE]: true,
-                [FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API]: true,
+                [FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API]: transactionalTabOn,
             }
         )
         render(
@@ -48,13 +49,13 @@ describe('WizardDomainStep', () => {
         )
 
         expect(await screen.findAllByText(/mail\.acme\.com/)).not.toHaveLength(0)
-        if (verified) {
-            expect(await screen.findByText('Send your first email from your code')).toBeInTheDocument()
+        if (verified && transactionalTabOn) {
+            expect(await screen.findByText('Send email from your code')).toBeInTheDocument()
             expect(document.querySelector('[data-attr="send-from-code-snippet"]')).toHaveTextContent(
-                "from: 'Acme <hello@mail.acme.com>'"
+                'from: "Acme <hello@mail.acme.com>"'
             )
         } else {
-            expect(screen.queryByText('Send your first email from your code')).toBeNull()
+            expect(screen.queryByText('Send email from your code')).toBeNull()
         }
     })
 })

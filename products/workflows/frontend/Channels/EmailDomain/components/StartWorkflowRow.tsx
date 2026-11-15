@@ -1,11 +1,11 @@
 import { IconBolt } from '@posthog/icons'
-import { Link } from '@posthog/lemon-ui'
+import { LemonCard, Link } from '@posthog/lemon-ui'
 
 import { urls } from 'scenes/urls'
 
 export function StartWorkflowRow(): JSX.Element {
     return (
-        <section className="rounded-xl border p-5 flex flex-wrap items-center justify-between gap-3">
+        <LemonCard hoverEffect={false} className="rounded-xl p-5 flex flex-wrap items-center justify-between gap-3">
             <span className="flex items-center gap-2 min-w-0 text-sm">
                 <IconBolt className="text-secondary text-lg shrink-0" />
                 <span>
@@ -20,6 +20,6 @@ export function StartWorkflowRow(): JSX.Element {
                     Go to workflows
                 </Link>
             </span>
-        </section>
+        </LemonCard>
     )
 }

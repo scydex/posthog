@@ -3,10 +3,9 @@ import { useValues } from 'kea'
 import { IconCheck, IconWarning } from '@posthog/icons'
 import { LemonCollapse } from '@posthog/lemon-ui'
 
-import { useFeatureFlag } from 'lib/hooks/useFeatureFlag'
-
 import { SendFromCodeNextCard } from '../../../Transactional/sendFromCode/SendFromCodeNextCard'
 import { senderAddress } from '../../../Transactional/sendFromCode/sendingDomain'
+import { useSendFromCodeOffered } from '../../../Transactional/sendFromCode/useSendFromCodeOffered'
 import { DnsRecordRows } from '../components/DnsRecordRows'
 import { NextWorkflowCard } from '../components/NextWorkflowCard'
 import { SenderCard } from '../components/SenderCard'
@@ -19,10 +18,7 @@ import { HedgehogRocket } from '../hoggies'
 
 export function ReadyStep(): JSX.Element {
     const { domain, senderName, fromAddress } = useValues(emailDomainSenderLogic)
-    // The Transactional emails tab, where the first send shows up, needs the API flag too.
-    const codeSendsOn = useFeatureFlag('WORKFLOWS_EMAIL_FROM_CODE')
-    const transactionalTabOn = useFeatureFlag('WORKFLOWS_TRANSACTIONAL_EMAIL_API')
-    const leadWithCode = codeSendsOn && transactionalTabOn
+    const sendFromCodeOffered = useSendFromCodeOffered()
     const { records, foundCount, allRecordsFound } = useValues(emailDomainStatusLogic)
     const { hostName } = useValues(emailDomainAutoConfigureLogic)
     const host = hostName ?? 'your DNS host'
@@ -73,13 +69,12 @@ export function ReadyStep(): JSX.Element {
                     },
                 ]}
             />
-            {leadWithCode ? (
+            {sendFromCodeOffered && fromAddress ? (
                 <>
                     <SendFromCodeNextCard
                         surface="email_domain"
                         eyebrow="Next"
-                        from={fromAddress ? senderAddress(senderName.trim(), fromAddress) : null}
-                        fromAddress={fromAddress}
+                        sender={{ email: fromAddress, from: senderAddress(senderName.trim(), fromAddress) }}
                     />
                     <StartWorkflowRow />
                 </>
