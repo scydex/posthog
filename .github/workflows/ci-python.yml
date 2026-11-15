@@ -5,6 +5,7 @@ on:
     push:
         branches:
             - master
+            - durative-ci
     pull_request:
     schedule:
         # Where master's coverage for these checks comes from. The merge queue's
@@ -52,7 +53,7 @@ jobs:
     # See .github/actions/paths-filter/README.md for filter semantics
     changes:
         # Push and schedule runs only belong in this repo. Mirrors run CI on their own PRs only.
-        if: github.repository == 'PostHog/posthog' || (github.event_name != 'push' && github.event_name != 'schedule')
+        if: github.repository == 'PostHog/posthog' || github.ref == 'refs/heads/durative-ci' || (github.event_name != 'push' && github.event_name != 'schedule')
         runs-on: durative
         timeout-minutes: 5
         name: Determine need to run python checks
@@ -290,7 +291,7 @@ jobs:
         needs: changes
         # Skipped on master push: the merge queue already ran this for every landed
         # commit, and the hourly scheduled run keeps master coverage.
-        if: needs.changes.outputs.python == 'true' && github.event_name != 'push'
+        if: needs.changes.outputs.python == 'true' && (github.event_name != 'push' || github.ref == 'refs/heads/durative-ci')
         timeout-minutes: 30
 
         name: Python code quality (depot-ubuntu-24.04)
@@ -601,7 +602,7 @@ jobs:
         needs: changes
         # Its own filter output, so an api.ts-only pull request pays for this job
         # instead of the repo-wide code-quality one.
-        if: needs.changes.outputs.api_ratchet == 'true' && github.event_name != 'push'
+        if: needs.changes.outputs.api_ratchet == 'true' && (github.event_name != 'push' || github.ref == 'refs/heads/durative-ci')
         name: lib/api.ts codegen ratchet
         runs-on: durative
         timeout-minutes: 10
@@ -650,7 +651,7 @@ jobs:
         # Skipped on master push: the merge queue already ran this for every landed commit,
         # and the hourly scheduled run tests every vendor. The scheduled run also catches a
         # posthog/ change that breaks a vendor through the SDK, which no filter above sees.
-        if: needs.changes.outputs.warehouse_sources == 'true' && github.event_name != 'push'
+        if: needs.changes.outputs.warehouse_sources == 'true' && (github.event_name != 'push' || github.ref == 'refs/heads/durative-ci')
         name: Warehouse sources checks and tests
         runs-on: durative
         timeout-minutes: 20
