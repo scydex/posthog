@@ -7,6 +7,7 @@ import { Provider, useValues } from 'kea'
 import { router } from 'kea-router'
 import posthog from 'posthog-js'
 
+import { FEATURE_FLAGS } from 'lib/constants'
 import { featureFlagLogic } from 'lib/logic/featureFlagLogic'
 import { organizationLogic } from 'scenes/organizationLogic'
 import { urls } from 'scenes/urls'
@@ -338,6 +339,48 @@ describe('EmailDomainScene', () => {
         expect(screen.getByText('Your sender')).toBeInTheDocument()
         expect(screen.getByText(`Send email from ${DOMAIN}`)).toBeInTheDocument()
         expect(screen.queryByText(/first/i)).toBeNull()
+    })
+
+    it.each([
+        ['leads with the first send from code when code sends are on', true],
+        ['keeps the workflow choices when code sends are off', false],
+    ])('%s on the ready step', async (_case, codeSendsOn) => {
+        let codeEmails: { id: string; key: string; created_at: string }[] = []
+        useMocks({
+            ...backend.mocks(),
+            get: {
+                ...backend.mocks().get,
+                '/api/projects/:team_id/transactional_code_emails/': () => [200, codeEmails],
+            },
+        })
+        featureFlagLogic.actions.setFeatureFlags(
+            [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE, FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API],
+            {
+                [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE]: codeSendsOn,
+                [FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API]: true,
+            }
+        )
+        seedSender()
+        backend.verifyDomain(DOMAIN)
+        await open(urls.workflowsEmailDomain(SENDER_ID))
+        expectStep(/You can send from/)
+
+        if (!codeSendsOn) {
+            expect(screen.getByText(`Send your first email from ${DOMAIN}`)).toBeInTheDocument()
+            expect(document.querySelector('[data-attr="send-from-code-next-card"]')).toBeNull()
+            return
+        }
+        expect(screen.getByText('Send your first email from your code')).toBeInTheDocument()
+        expect(element('send-from-code-snippet')).toHaveTextContent(`from: 'Acme <hello@${DOMAIN}>'`)
+
+        codeEmails = [{ id: 'code-email-1', key: 'welcome', created_at: '2026-11-15T10:00:00Z' }]
+        await flush(POLL_MS)
+
+        expect(element('send-from-code-open-first-email').closest('a')).toHaveAttribute(
+            'href',
+            expect.stringMatching(/\/transactional\/code-emails\/code-email-1$/)
+        )
+        expect(document.querySelector('[data-attr="send-from-code-snippet"]')).toBeNull()
     })
 
     it('keeps the edited sender name on screen when the save fails, and saves it on the next try', async () => {

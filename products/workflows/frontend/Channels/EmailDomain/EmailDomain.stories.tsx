@@ -4,9 +4,10 @@ import { Meta, StoryObj } from '@storybook/react'
 import { useActions } from 'kea'
 import { useEffect, useMemo } from 'react'
 
+import { FEATURE_FLAGS } from 'lib/constants'
 import { organizationLogic } from 'scenes/organizationLogic'
 
-import { useStorybookMocks } from '~/mocks/browser'
+import { mswDecorator, useStorybookMocks } from '~/mocks/browser'
 
 import type { DataSuggestionApi } from '../../generated/api.schemas'
 import { FakeDnsHost, FakeEmailDomainBackend, FakeRecord } from './__mocks__/fakeEmailDomainBackend'
@@ -216,6 +217,15 @@ export const VerifyingFailed: Story = {
 }
 
 export const Ready: Story = { args: { host: 'cloudflare', seed: (backend) => backend.verifyDomain(DOMAIN) } }
+
+export const ReadyWithSendFromCode: Story = {
+    args: { host: 'cloudflare', seed: (backend) => backend.verifyDomain(DOMAIN) },
+    decorators: [mswDecorator({ get: { '/api/projects/:team_id/transactional_code_emails/': [] } })],
+    parameters: {
+        featureFlags: [FEATURE_FLAGS.WORKFLOWS_EMAIL_FROM_CODE, FEATURE_FLAGS.WORKFLOWS_TRANSACTIONAL_EMAIL_API],
+        testOptions: { waitForLoadersToDisappear: false, snapshotBrowsers: [] },
+    },
+}
 
 export const ReadyLongDomain: Story = {
     args: {

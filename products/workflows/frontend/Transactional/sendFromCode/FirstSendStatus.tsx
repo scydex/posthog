@@ -21,16 +21,17 @@ export function FirstSendStatus({ surface }: { surface: SendFromCodeSurface }): 
             >
                 <IconCheckCircle className="text-success text-lg shrink-0" />
                 <span className="flex-1 min-w-0">
-                    <b>PostHog got the first email from your code.</b> Open{' '}
-                    <code className="break-all">{firstCodeSend.codeEmail.key}</code> to see whether it was delivered.
+                    <b>PostHog got the first email from your code:</b>{' '}
+                    <code className="break-all">{firstCodeSend.codeEmail.key}</code>. Its page shows whether it was
+                    delivered.
                 </span>
                 <LemonButton
-                    type="secondary"
+                    type="primary"
                     size="small"
                     to={urls.transactionalCodeEmail(firstCodeSend.codeEmail.id)}
                     data-attr="send-from-code-open-first-email"
                 >
-                    Open email
+                    See it in Transactional emails
                 </LemonButton>
             </LemonCard>
         )
