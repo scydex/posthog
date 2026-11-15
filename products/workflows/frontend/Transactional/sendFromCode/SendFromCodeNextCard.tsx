@@ -33,14 +33,14 @@ export function SendFromCodeNextCard({
                             : 'Send your first email from your code'}
                     </h2>
                     <p className="m-0 text-sm text-secondary">
-                        One API call from your server sends a sign-in code, a receipt or a password reset
+                        <span>One API call from your server sends a sign-in code, a receipt or a password reset</span>
                         {fromAddress ? (
-                            <>
-                                {' '}
-                                from <span className="font-mono break-all">{fromAddress}</span>
-                            </>
+                            <span>
+                                {' from '}
+                                <span className="font-mono break-words">{fromAddress}</span>
+                            </span>
                         ) : null}
-                        . PostHog links every email to the person who got it.
+                        <span>. PostHog links every email to the person who got it.</span>
                     </p>
                 </div>
             </div>
