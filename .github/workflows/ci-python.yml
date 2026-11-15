@@ -1,6 +1,7 @@
 # This workflow runs generic Python tests global to Dagster and PostHog.
 name: Python CI
 on:
+    workflow_dispatch:
     push:
         branches:
             - master
@@ -37,7 +38,7 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             github.actor != 'dependabot[bot]' &&
             !startsWith(github.head_ref, 'trunk-merge/')
-        runs-on: ubuntu-24.04
+        runs-on: durative
         timeout-minutes: 5
         permissions: {}
         steps:
@@ -52,7 +53,7 @@ jobs:
     changes:
         # Push and schedule runs only belong in this repo. Mirrors run CI on their own PRs only.
         if: github.repository == 'PostHog/posthog' || (github.event_name != 'push' && github.event_name != 'schedule')
-        runs-on: ubuntu-24.04
+        runs-on: durative
         timeout-minutes: 5
         name: Determine need to run python checks
         # Set job outputs to values from filter step
@@ -295,7 +296,7 @@ jobs:
         name: Python code quality (depot-ubuntu-24.04)
         # Master and the merge queue run mypy cold after a dependency change, which needs more than 8 GB. A pull
         # request that changes the cache key can also run nearly cold, so it gets the big runner too.
-        runs-on: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'trunk-merge/') && needs.changes.outputs.mypy_cache_key != 'true' && 'depot-ubuntu-24.04' || 'depot-ubuntu-24.04-4' }}
+        runs-on: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'trunk-merge/') && needs.changes.outputs.mypy_cache_key != 'true' && 'durative' || 'durative' }}
         # Read by shell guards on the pytest steps below. Those steps sit in a
         # `parallel:` block, where step-level `if:` is untested in this repo.
         env:
@@ -602,7 +603,7 @@ jobs:
         # instead of the repo-wide code-quality one.
         if: needs.changes.outputs.api_ratchet == 'true' && github.event_name != 'push'
         name: lib/api.ts codegen ratchet
-        runs-on: ubuntu-24.04
+        runs-on: durative
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -651,7 +652,7 @@ jobs:
         # posthog/ change that breaks a vendor through the SDK, which no filter above sees.
         if: needs.changes.outputs.warehouse_sources == 'true' && github.event_name != 'push'
         name: Warehouse sources checks and tests
-        runs-on: depot-ubuntu-24.04
+        runs-on: durative
         timeout-minutes: 20
         steps:
             - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -800,7 +801,7 @@ jobs:
     python_tests:
         needs: [changes, code-quality, api-ratchet, warehouse-sources]
         name: Python code quality checks
-        runs-on: ubuntu-24.04
+        runs-on: durative
         timeout-minutes: 5
         if: ${{ !cancelled() }}
         steps:
