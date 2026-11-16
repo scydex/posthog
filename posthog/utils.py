@@ -2651,3 +2651,5 @@ def get_current_user_from_thread() -> Optional["User"]:
     if request and hasattr(request, "user"):
         return request.user
     return None
+
+# Durative retest: incremental leaf input, 2026-11-16.
