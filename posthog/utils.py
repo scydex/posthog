@@ -2651,3 +2651,4 @@ def get_current_user_from_thread() -> Optional["User"]:
     if request and hasattr(request, "user"):
         return request.user
     return None
+# durative warm build pack early measurement: cold-20261118
