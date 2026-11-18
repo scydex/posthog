@@ -2652,3 +2652,4 @@ def get_current_user_from_thread() -> Optional["User"]:
         return request.user
     return None
 # durative warm build pack early measurement: cold-20261118
+# durative warm build pack early measurement: warm-nopack-20261118
